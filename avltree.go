@@ -2,49 +2,51 @@ package avltree
 
 import (
 	"fmt"
+
+	"golang.org/x/exp/constraints"
 )
 
-// AVLTree structure. Public methods are Add, Remove, Update, Search, DisplayTreeInOrder.
-type AVLTree struct {
-	root *AVLNode
+// AVLTree[TKey constraints.Ordered, TValue any] structure. Public methods are Add, Remove, Update, Search, DisplayTreeInOrder.
+type AVLTree[TKey constraints.Ordered, TValue any] struct {
+	root *AVLNode[TKey, TValue]
 }
 
-func (t *AVLTree) Add(key int, value int) {
+func (t *AVLTree[TKey, TValue]) Add(key TKey, value TValue) {
 	t.root = t.root.add(key, value)
 }
 
-func (t *AVLTree) Remove(key int) {
+func (t *AVLTree[TKey, TValue]) Remove(key TKey) {
 	t.root = t.root.remove(key)
 }
 
-func (t *AVLTree) Update(oldKey int, newKey int, newValue int) {
+func (t *AVLTree[TKey, TValue]) Update(oldKey TKey, newKey TKey, newValue TValue) {
 	t.root = t.root.remove(oldKey)
 	t.root = t.root.add(newKey, newValue)
 }
 
-func (t *AVLTree) Search(key int) (node *AVLNode) {
+func (t *AVLTree[TKey, TValue]) Search(key TKey) (node *AVLNode[TKey, TValue]) {
 	return t.root.search(key)
 }
 
-func (t *AVLTree) DisplayInOrder() {
+func (t *AVLTree[TKey, TValue]) DisplayInOrder() {
 	t.root.displayNodesInOrder()
 }
 
 // AVLNode structure
-type AVLNode struct {
-	key   int
-	Value int
+type AVLNode[TKey constraints.Ordered, TValue any] struct {
+	key   TKey
+	Value TValue
 
 	// height counts nodes (not edges)
 	height int
-	left   *AVLNode
-	right  *AVLNode
+	left   *AVLNode[TKey, TValue]
+	right  *AVLNode[TKey, TValue]
 }
 
 // Adds a new node
-func (n *AVLNode) add(key int, value int) *AVLNode {
+func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue) *AVLNode[TKey, TValue] {
 	if n == nil {
-		return &AVLNode{key, value, 1, nil, nil}
+		return &AVLNode[TKey, TValue]{key, value, 1, nil, nil}
 	}
 
 	if key < n.key {
@@ -59,7 +61,7 @@ func (n *AVLNode) add(key int, value int) *AVLNode {
 }
 
 // Removes a node
-func (n *AVLNode) remove(key int) *AVLNode {
+func (n *AVLNode[TKey, TValue]) remove(key TKey) *AVLNode[TKey, TValue] {
 	if n == nil {
 		return nil
 	}
@@ -93,7 +95,7 @@ func (n *AVLNode) remove(key int) *AVLNode {
 }
 
 // Searches for a node
-func (n *AVLNode) search(key int) *AVLNode {
+func (n *AVLNode[TKey, TValue]) search(key TKey) *AVLNode[TKey, TValue] {
 	if n == nil {
 		return nil
 	}
@@ -107,7 +109,7 @@ func (n *AVLNode) search(key int) *AVLNode {
 }
 
 // Displays nodes left-depth first (used for debugging)
-func (n *AVLNode) displayNodesInOrder() {
+func (n *AVLNode[TKey, TValue]) displayNodesInOrder() {
 	if n.left != nil {
 		n.left.displayNodesInOrder()
 	}
@@ -117,19 +119,19 @@ func (n *AVLNode) displayNodesInOrder() {
 	}
 }
 
-func (n *AVLNode) getHeight() int {
+func (n *AVLNode[TKey, TValue]) getHeight() int {
 	if n == nil {
 		return 0
 	}
 	return n.height
 }
 
-func (n *AVLNode) recalculateHeight() {
+func (n *AVLNode[TKey, TValue]) recalculateHeight() {
 	n.height = 1 + max(n.left.getHeight(), n.right.getHeight())
 }
 
 // Checks if node is balanced and rebalance
-func (n *AVLNode) rebalanceTree() *AVLNode {
+func (n *AVLNode[TKey, TValue]) rebalanceTree() *AVLNode[TKey, TValue] {
 	if n == nil {
 		return n
 	}
@@ -154,7 +156,7 @@ func (n *AVLNode) rebalanceTree() *AVLNode {
 }
 
 // Rotate nodes left to balance node
-func (n *AVLNode) rotateLeft() *AVLNode {
+func (n *AVLNode[TKey, TValue]) rotateLeft() *AVLNode[TKey, TValue] {
 	newRoot := n.right
 	n.right = newRoot.left
 	newRoot.left = n
@@ -165,7 +167,7 @@ func (n *AVLNode) rotateLeft() *AVLNode {
 }
 
 // Rotate nodes right to balance node
-func (n *AVLNode) rotateRight() *AVLNode {
+func (n *AVLNode[TKey, TValue]) rotateRight() *AVLNode[TKey, TValue] {
 	newRoot := n.left
 	n.left = newRoot.right
 	newRoot.right = n
@@ -176,7 +178,7 @@ func (n *AVLNode) rotateRight() *AVLNode {
 }
 
 // Finds the smallest child (based on the key) for the current node
-func (n *AVLNode) findSmallest() *AVLNode {
+func (n *AVLNode[TKey, TValue]) findSmallest() *AVLNode[TKey, TValue] {
 	if n.left != nil {
 		return n.left.findSmallest()
 	} else {
@@ -185,7 +187,7 @@ func (n *AVLNode) findSmallest() *AVLNode {
 }
 
 // Returns max number - TODO: std lib seemed to only have a method for floats!
-func max(a int, b int) int {
+func max[TKey constraints.Ordered](a TKey, b TKey) TKey {
 	if a > b {
 		return a
 	}
