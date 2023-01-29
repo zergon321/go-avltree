@@ -1,46 +1,52 @@
-package avltree
+package avltree_test
 
 import (
 	"math/rand"
+	"sort"
 	"testing"
+
+	"github.com/zergon321/go-avltree"
+	"github.com/zergon321/rb"
 )
 
-const (
-	opAdd = iota
-	opRemove
-	opSearch
-)
+func BenchmarkInsert(b *testing.B) {
+	tree := &avltree.AVLTree[int, int]{}
 
-func TestTree(t *testing.T) {
-	tree := &AVLTree{}
-	m := make(map[int]int)
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Add(value, value)
+	}
+}
 
-	const maxKey = 100
-	const nops = 10000
-	for i := 0; i < nops; i++ {
-		op := rand.Intn(3)
-		k := rand.Intn(maxKey)
+func BenchmarkRBInsert(b *testing.B) {
+	tree := rb.NewTree[int, int]()
 
-		switch op {
-		case opAdd:
-			v := rand.Int()
-			tree.Add(k, v)
-			m[k] = v
-		case opRemove:
-			tree.Remove(k)
-			delete(m, k)
-		case opSearch:
-			var tv int
-			node := tree.Search(k)
-			tok := node != nil
-			if tok {
-				tv = node.Value
-			}
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Insert(value, value)
+	}
+}
 
-			mv := m[k]
-			if tv != mv {
-				t.Errorf("Incorrect value for key %d, want: %d, got: %d", k, mv, tv)
-			}
+func BenchmarkSliceInsert(b *testing.B) {
+	slice := []int{}
+
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		length := len(slice)
+
+		ind := sort.Search(length, func(i int) bool {
+			return slice[i] >= value
+		})
+
+		if ind == 0 {
+			slice = append(slice, 0)
+			copy(slice[1:], slice)
+			slice[0] = value
+		} else if ind < length {
+			slice = append(slice[:ind+1], slice[ind:]...)
+			slice[ind] = value
+		} else {
+			slice = append(slice, value)
 		}
 	}
 }

@@ -1,2 +1,4 @@
+github.com/zergon321/rb v0.0.0-20220806230750-73b7fb90c7a0 h1:NXecs7zYr7bhDpt0R147Pe5n129v0eY0nIQ0rQT7HWk=
+github.com/zergon321/rb v0.0.0-20220806230750-73b7fb90c7a0/go.mod h1:dNItFmcokCfRHNzLEy+Ds/C5ZdrrrKOZyVVqgpsZZgk=
 golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e h1:+WEEuIdZHnUeJJmEUjyYC2gfUMj69yZXw17EnHg/otA=
 golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e/go.mod h1:Kr81I6Kryrl9sr8s2FK3vxD90NdsKWRuOIl2O4CvYbA=
