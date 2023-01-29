@@ -1,3 +1,5 @@
+github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
+github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/zergon321/rb v0.0.0-20220806230750-73b7fb90c7a0 h1:NXecs7zYr7bhDpt0R147Pe5n129v0eY0nIQ0rQT7HWk=
 github.com/zergon321/rb v0.0.0-20220806230750-73b7fb90c7a0/go.mod h1:dNItFmcokCfRHNzLEy+Ds/C5ZdrrrKOZyVVqgpsZZgk=
 golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e h1:+WEEuIdZHnUeJJmEUjyYC2gfUMj69yZXw17EnHg/otA=

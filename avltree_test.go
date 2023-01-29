@@ -5,11 +5,13 @@ import (
 	"sort"
 	"testing"
 
+	godsavl "github.com/emirpasic/gods/trees/avltree"
+	godsrb "github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/zergon321/go-avltree"
 	"github.com/zergon321/rb"
 )
 
-func BenchmarkInsert(b *testing.B) {
+func BenchmarAVLInsert(b *testing.B) {
 	tree := &avltree.AVLTree[int, int]{}
 
 	for i := 0; i < b.N; i++ {
@@ -48,5 +50,23 @@ func BenchmarkSliceInsert(b *testing.B) {
 		} else {
 			slice = append(slice, value)
 		}
+	}
+}
+
+func BenchmarkGodsAVLInsert(b *testing.B) {
+	tree := godsavl.NewWithIntComparator()
+
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Put(value, value)
+	}
+}
+
+func BenchmarkGodsRBInsert(b *testing.B) {
+	tree := godsrb.NewWithIntComparator()
+
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Put(value, value)
 	}
 }
