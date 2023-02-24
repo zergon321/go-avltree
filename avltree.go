@@ -63,6 +63,11 @@ type AVLNode[TKey constraints.Ordered, TValue any] struct {
 	right  *AVLNode[TKey, TValue]
 }
 
+// Key returns the key of the AVL tree node.
+func (node *AVLNode[TKey, TValue]) Key() TKey {
+	return node.key
+}
+
 // Erase nullifies all the
 // fields of the AVL tree node.
 func (node *AVLNode[TKey, TValue]) Erase() error {
