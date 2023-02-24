@@ -8,17 +8,9 @@ import (
 	godsavl "github.com/emirpasic/gods/trees/avltree"
 	godsrb "github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/zergon321/go-avltree"
+	"github.com/zergon321/mempool"
 	"github.com/zergon321/rb"
 )
-
-func BenchmarAVLInsert(b *testing.B) {
-	tree := &avltree.AVLTree[int, int]{}
-
-	for i := 0; i < b.N; i++ {
-		value := rand.Int()
-		tree.Add(value, value)
-	}
-}
 
 func BenchmarkRBInsert(b *testing.B) {
 	tree := rb.NewTree[int, int]()
@@ -68,5 +60,37 @@ func BenchmarkGodsRBInsert(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		value := rand.Int()
 		tree.Put(value, value)
+	}
+}
+
+func BenchmarkAVLInsert(b *testing.B) {
+	tree := &avltree.AVLTree[int, int]{}
+
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Add(value, value)
+	}
+}
+
+func BenchmarkAVLInsertThenRemove(b *testing.B) {
+	tree := &avltree.AVLTree[int, int]{}
+
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Add(value, value)
+		tree.Remove(value)
+	}
+}
+
+func BenchmarkAVLInsertThenRemoveMemoryPool(b *testing.B) {
+	pool, _ := mempool.NewPool(func() *avltree.AVLNode[int, int] {
+		return &avltree.AVLNode[int, int]{}
+	}, mempool.PoolOptionInitialLength[*avltree.AVLNode[int, int]](1))
+	tree, _ := avltree.NewAVLTree(avltree.AVLTreeOptionWithMemoryPool(pool))
+
+	for i := 0; i < b.N; i++ {
+		value := rand.Int()
+		tree.Add(value, value)
+		tree.Remove(value)
 	}
 }

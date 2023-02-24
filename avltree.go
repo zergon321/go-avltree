@@ -3,25 +3,27 @@ package avltree
 import (
 	"fmt"
 
+	"github.com/zergon321/mempool"
 	"golang.org/x/exp/constraints"
 )
 
 // AVLTree[TKey constraints.Ordered, TValue any] structure. Public methods are Add, Remove, Update, Search, DisplayTreeInOrder.
 type AVLTree[TKey constraints.Ordered, TValue any] struct {
 	root *AVLNode[TKey, TValue]
+	pool *mempool.Pool[*AVLNode[TKey, TValue]]
 }
 
 func (t *AVLTree[TKey, TValue]) Add(key TKey, value TValue) {
-	t.root = t.root.add(key, value)
+	t.root = t.root.add(key, value, t.pool)
 }
 
 func (t *AVLTree[TKey, TValue]) Remove(key TKey) {
-	t.root = t.root.remove(key)
+	t.root = t.root.remove(key, t.pool)
 }
 
 func (t *AVLTree[TKey, TValue]) Update(oldKey TKey, newKey TKey, newValue TValue) {
-	t.root = t.root.remove(oldKey)
-	t.root = t.root.add(newKey, newValue)
+	t.root = t.root.remove(oldKey, t.pool)
+	t.root = t.root.add(newKey, newValue, t.pool)
 }
 
 func (t *AVLTree[TKey, TValue]) Search(key TKey) (node *AVLNode[TKey, TValue]) {
@@ -43,16 +45,43 @@ type AVLNode[TKey constraints.Ordered, TValue any] struct {
 	right  *AVLNode[TKey, TValue]
 }
 
+// Erase nullifies all the
+// fields of the AVL tree node.
+func (node *AVLNode[TKey, TValue]) Erase() error {
+	var (
+		zeroValTKey   TKey
+		zeroValTValue TValue
+	)
+
+	node.key = zeroValTKey
+	node.Value = zeroValTValue
+	node.height = 0
+	node.left = nil
+	node.right = nil
+
+	return nil
+}
+
 // Adds a new node
-func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue) *AVLNode[TKey, TValue] {
+func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue, pool *mempool.Pool[*AVLNode[TKey, TValue]]) *AVLNode[TKey, TValue] {
 	if n == nil {
+		if pool != nil {
+			node := pool.Get()
+
+			node.key = key
+			node.Value = value
+			node.height = 1
+
+			return node
+		}
+
 		return &AVLNode[TKey, TValue]{key, value, 1, nil, nil}
 	}
 
 	if key < n.key {
-		n.left = n.left.add(key, value)
+		n.left = n.left.add(key, value, pool)
 	} else if key > n.key {
-		n.right = n.right.add(key, value)
+		n.right = n.right.add(key, value, pool)
 	} else {
 		// if same key exists update value
 		n.Value = value
@@ -61,14 +90,14 @@ func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue) *AVLNode[TKey, TValu
 }
 
 // Removes a node
-func (n *AVLNode[TKey, TValue]) remove(key TKey) *AVLNode[TKey, TValue] {
+func (n *AVLNode[TKey, TValue]) remove(key TKey, pool *mempool.Pool[*AVLNode[TKey, TValue]]) *AVLNode[TKey, TValue] {
 	if n == nil {
 		return nil
 	}
 	if key < n.key {
-		n.left = n.left.remove(key)
+		n.left = n.left.remove(key, pool)
 	} else if key > n.key {
-		n.right = n.right.remove(key)
+		n.right = n.right.remove(key, pool)
 	} else {
 		if n.left != nil && n.right != nil {
 			// node to delete found with both children;
@@ -77,16 +106,32 @@ func (n *AVLNode[TKey, TValue]) remove(key TKey) *AVLNode[TKey, TValue] {
 			n.key = rightMinNode.key
 			n.Value = rightMinNode.Value
 			// delete smallest node that we replaced
-			n.right = n.right.remove(rightMinNode.key)
+			n.right = n.right.remove(rightMinNode.key, pool)
 		} else if n.left != nil {
 			// node only has left child
+			node := n
 			n = n.left
+
+			if pool != nil {
+				pool.Put(node)
+			}
 		} else if n.right != nil {
 			// node only has right child
+			node := n
 			n = n.right
+
+			if pool != nil {
+				pool.Put(node)
+			}
 		} else {
 			// node has no children
+			node := n
 			n = nil
+
+			if pool != nil {
+				pool.Put(node)
+			}
+
 			return n
 		}
 
@@ -192,4 +237,27 @@ func max[TKey constraints.Ordered](a TKey, b TKey) TKey {
 		return a
 	}
 	return b
+}
+
+// NewAVLTree creates a new
+// AVL tree with the specified options.
+func NewAVLTree[
+	TKey constraints.Ordered, TValue any,
+](
+	options ...AVLTreeOption[TKey, TValue],
+) (
+	*AVLTree[TKey, TValue], error,
+) {
+	tree := &AVLTree[TKey, TValue]{}
+
+	for i := 0; i < len(options); i++ {
+		option := options[i]
+		err := option(tree)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tree, nil
 }
