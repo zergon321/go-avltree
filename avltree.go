@@ -30,6 +30,24 @@ func (t *AVLTree[TKey, TValue]) Search(key TKey) (node *AVLNode[TKey, TValue]) {
 	return t.root.search(key)
 }
 
+func (t *AVLTree[TKey, TValue]) VisitInOrder(visit func(node *AVLNode[TKey, TValue])) {
+	t.visitInOrder(t.root, visit)
+}
+
+func (t *AVLTree[TKey, TValue]) visitInOrder(node *AVLNode[TKey, TValue], visit func(node *AVLNode[TKey, TValue])) {
+	if node.left != nil {
+		t.visitInOrder(node.left, visit)
+	}
+
+	if node != nil {
+		visit(node)
+	}
+
+	if node.right != nil {
+		t.visitInOrder(node.right, visit)
+	}
+}
+
 func (t *AVLTree[TKey, TValue]) DisplayInOrder() {
 	t.root.displayNodesInOrder()
 }

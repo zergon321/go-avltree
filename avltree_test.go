@@ -3,14 +3,38 @@ package avltree_test
 import (
 	"math/rand"
 	"sort"
+	"strconv"
 	"testing"
 
 	godsavl "github.com/emirpasic/gods/trees/avltree"
 	godsrb "github.com/emirpasic/gods/trees/redblacktree"
+	"github.com/stretchr/testify/assert"
 	"github.com/zergon321/go-avltree"
 	"github.com/zergon321/mempool"
 	"github.com/zergon321/rb"
 )
+
+func TestVisitInOrder(t *testing.T) {
+	tree, err := avltree.NewAVLTree[int, int]()
+	assert.Nil(t, err)
+
+	tree.Add(1, 1)
+	tree.Add(2, 2)
+	tree.Add(3, 3)
+	tree.Add(4, 4)
+	tree.Add(5, 5)
+	tree.Add(6, 6)
+	tree.Add(7, 7)
+	tree.Add(8, 8)
+
+	str := ""
+
+	tree.VisitInOrder(func(node *avltree.AVLNode[int, int]) {
+		str += strconv.Itoa(node.Value)
+	})
+
+	assert.Equal(t, "12345678", str)
+}
 
 func BenchmarkRBInsert(b *testing.B) {
 	tree := rb.NewTree[int, int]()
