@@ -13,6 +13,13 @@ type AVLTree[TKey constraints.Ordered, TValue any] struct {
 	pool *mempool.Pool[*AVLNode[TKey, TValue]]
 }
 
+func (t *AVLTree[TKey, TValue]) Erase() error {
+	t.root = nil
+	t.pool = nil
+
+	return nil
+}
+
 func (t *AVLTree[TKey, TValue]) Add(key TKey, value TValue) {
 	t.root = t.root.add(key, value, t.pool)
 }
