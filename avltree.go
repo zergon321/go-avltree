@@ -19,9 +19,17 @@ func (t *AVLTree[TKey, TValue]) Add(key TKey, value TValue) {
 
 func (t *AVLTree[TKey, TValue]) AddOrUpdate(
 	key TKey, value TValue,
-	upd func(oldValue TValue) TValue,
-) {
-	t.root = t.root.addOrUpdate(key, value, upd, t.pool)
+	upd func(oldValue TValue) (TValue, error),
+) error {
+	root, err := t.root.addOrUpdate(key, value, upd, t.pool)
+
+	if err != nil {
+		return err
+	}
+
+	t.root = root
+
+	return nil
 }
 
 func (t *AVLTree[TKey, TValue]) Remove(key TKey) {
@@ -121,9 +129,9 @@ func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue, pool *mempool.Pool[*
 
 func (n *AVLNode[TKey, TValue]) addOrUpdate(
 	key TKey, value TValue,
-	upd func(oldValue TValue) TValue,
+	upd func(oldValue TValue) (TValue, error),
 	pool *mempool.Pool[*AVLNode[TKey, TValue]],
-) *AVLNode[TKey, TValue] {
+) (*AVLNode[TKey, TValue], error) {
 	if n == nil {
 		if pool != nil {
 			node := pool.Get()
@@ -132,10 +140,10 @@ func (n *AVLNode[TKey, TValue]) addOrUpdate(
 			node.Value = value
 			node.height = 1
 
-			return node
+			return node, nil
 		}
 
-		return &AVLNode[TKey, TValue]{key, value, 1, nil, nil}
+		return &AVLNode[TKey, TValue]{key, value, 1, nil, nil}, nil
 	}
 
 	if key < n.key {
@@ -144,10 +152,16 @@ func (n *AVLNode[TKey, TValue]) addOrUpdate(
 		n.right = n.right.add(key, value, pool)
 	} else {
 		// if same key exists update value
-		n.Value = upd(n.Value)
+		value, err := upd(n.Value)
+
+		if err != nil {
+			return nil, err
+		}
+
+		n.Value = value
 	}
 
-	return n.rebalanceTree()
+	return n.rebalanceTree(), nil
 }
 
 // Removes a node
