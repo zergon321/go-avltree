@@ -20,6 +20,10 @@ func (t *AVLTree[TKey, TValue]) Erase() error {
 	return nil
 }
 
+func (t *AVLTree[TKey, TValue]) SetPool(pool *mempool.Pool[*AVLNode[TKey, TValue]]) {
+	t.pool = pool
+}
+
 func (t *AVLTree[TKey, TValue]) Add(key TKey, value TValue) {
 	t.root = t.root.add(key, value, t.pool)
 }
