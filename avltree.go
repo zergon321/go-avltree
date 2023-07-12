@@ -147,6 +147,8 @@ func (n *AVLNode[TKey, TValue]) addOrUpdate(
 	upd func(oldValue TValue) (TValue, error),
 	pool *mempool.Pool[*AVLNode[TKey, TValue]],
 ) (*AVLNode[TKey, TValue], error) {
+	var err error
+
 	if n == nil {
 		if pool != nil {
 			node := pool.Get()
@@ -162,9 +164,17 @@ func (n *AVLNode[TKey, TValue]) addOrUpdate(
 	}
 
 	if key < n.key {
-		n.left = n.left.add(key, value, pool)
+		n.left, err = n.left.addOrUpdate(key, value, upd, pool)
+
+		if err != nil {
+			return nil, err
+		}
 	} else if key > n.key {
-		n.right = n.right.add(key, value, pool)
+		n.right, err = n.right.addOrUpdate(key, value, upd, pool)
+
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		// if same key exists update value
 		value, err := upd(n.Value)
