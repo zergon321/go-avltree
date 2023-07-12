@@ -61,6 +61,10 @@ func (t *AVLTree[TKey, TValue]) VisitInOrder(visit func(node *AVLNode[TKey, TVal
 }
 
 func (t *AVLTree[TKey, TValue]) visitInOrder(node *AVLNode[TKey, TValue], visit func(node *AVLNode[TKey, TValue])) {
+	if node == nil {
+		return
+	}
+
 	if node.left != nil {
 		t.visitInOrder(node.left, visit)
 	}
