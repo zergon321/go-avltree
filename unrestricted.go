@@ -4,31 +4,30 @@ import (
 	"fmt"
 
 	"github.com/zergon321/mempool"
-	"golang.org/x/exp/constraints"
 )
 
 // AVLTree[TKey constraints.Ordered, TValue any] structure. Public methods are Add, Remove, Update, Search, DisplayTreeInOrder.
-type AVLTree[TKey constraints.Ordered, TValue any] struct {
-	root *AVLNode[TKey, TValue]
-	pool *mempool.Pool[*AVLNode[TKey, TValue]]
+type UnrestrictedAVLTree[TKey Comparable, TValue any] struct {
+	root *UnrestrictedAVLNode[TKey, TValue]
+	pool *mempool.Pool[*UnrestrictedAVLNode[TKey, TValue]]
 }
 
-func (t *AVLTree[TKey, TValue]) Erase() error {
+func (t *UnrestrictedAVLTree[TKey, TValue]) Erase() error {
 	t.root = nil
 	t.pool = nil
 
 	return nil
 }
 
-func (t *AVLTree[TKey, TValue]) SetPool(pool *mempool.Pool[*AVLNode[TKey, TValue]]) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) SetPool(pool *mempool.Pool[*UnrestrictedAVLNode[TKey, TValue]]) {
 	t.pool = pool
 }
 
-func (t *AVLTree[TKey, TValue]) Add(key TKey, value TValue) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) Add(key TKey, value TValue) {
 	t.root = t.root.add(key, value, t.pool)
 }
 
-func (t *AVLTree[TKey, TValue]) AddOrUpdate(
+func (t *UnrestrictedAVLTree[TKey, TValue]) AddOrUpdate(
 	key TKey, value TValue,
 	upd func(oldValue TValue) (TValue, error),
 ) error {
@@ -43,24 +42,24 @@ func (t *AVLTree[TKey, TValue]) AddOrUpdate(
 	return nil
 }
 
-func (t *AVLTree[TKey, TValue]) Remove(key TKey) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) Remove(key TKey) {
 	t.root = t.root.remove(key, t.pool)
 }
 
-func (t *AVLTree[TKey, TValue]) Update(oldKey TKey, newKey TKey, newValue TValue) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) Update(oldKey TKey, newKey TKey, newValue TValue) {
 	t.root = t.root.remove(oldKey, t.pool)
 	t.root = t.root.add(newKey, newValue, t.pool)
 }
 
-func (t *AVLTree[TKey, TValue]) Search(key TKey) (node *AVLNode[TKey, TValue]) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) Search(key TKey) (node *UnrestrictedAVLNode[TKey, TValue]) {
 	return t.root.search(key)
 }
 
-func (t *AVLTree[TKey, TValue]) VisitInOrder(visit func(node *AVLNode[TKey, TValue])) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) VisitInOrder(visit func(node *UnrestrictedAVLNode[TKey, TValue])) {
 	t.visitInOrder(t.root, visit)
 }
 
-func (t *AVLTree[TKey, TValue]) visitInOrder(node *AVLNode[TKey, TValue], visit func(node *AVLNode[TKey, TValue])) {
+func (t *UnrestrictedAVLTree[TKey, TValue]) visitInOrder(node *UnrestrictedAVLNode[TKey, TValue], visit func(node *UnrestrictedAVLNode[TKey, TValue])) {
 	if node == nil {
 		return
 	}
@@ -78,29 +77,29 @@ func (t *AVLTree[TKey, TValue]) visitInOrder(node *AVLNode[TKey, TValue], visit 
 	}
 }
 
-func (t *AVLTree[TKey, TValue]) DisplayInOrder() {
+func (t *UnrestrictedAVLTree[TKey, TValue]) DisplayInOrder() {
 	t.root.displayNodesInOrder()
 }
 
 // AVLNode structure
-type AVLNode[TKey constraints.Ordered, TValue any] struct {
+type UnrestrictedAVLNode[TKey Comparable, TValue any] struct {
 	key   TKey
 	Value TValue
 
 	// height counts nodes (not edges)
 	height int
-	left   *AVLNode[TKey, TValue]
-	right  *AVLNode[TKey, TValue]
+	left   *UnrestrictedAVLNode[TKey, TValue]
+	right  *UnrestrictedAVLNode[TKey, TValue]
 }
 
 // Key returns the key of the AVL tree node.
-func (node *AVLNode[TKey, TValue]) Key() TKey {
+func (node *UnrestrictedAVLNode[TKey, TValue]) Key() TKey {
 	return node.key
 }
 
 // Erase nullifies all the
 // fields of the AVL tree node.
-func (node *AVLNode[TKey, TValue]) Erase() error {
+func (node *UnrestrictedAVLNode[TKey, TValue]) Erase() error {
 	var (
 		zeroValTKey   TKey
 		zeroValTValue TValue
@@ -116,7 +115,7 @@ func (node *AVLNode[TKey, TValue]) Erase() error {
 }
 
 // Adds a new node
-func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue, pool *mempool.Pool[*AVLNode[TKey, TValue]]) *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) add(key TKey, value TValue, pool *mempool.Pool[*UnrestrictedAVLNode[TKey, TValue]]) *UnrestrictedAVLNode[TKey, TValue] {
 	if n == nil {
 		if pool != nil {
 			node := pool.Get()
@@ -128,12 +127,12 @@ func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue, pool *mempool.Pool[*
 			return node
 		}
 
-		return &AVLNode[TKey, TValue]{key, value, 1, nil, nil}
+		return &UnrestrictedAVLNode[TKey, TValue]{key, value, 1, nil, nil}
 	}
 
-	if key < n.key {
+	if key.Less(n.key) {
 		n.left = n.left.add(key, value, pool)
-	} else if key > n.key {
+	} else if key.Greater(n.key) {
 		n.right = n.right.add(key, value, pool)
 	} else {
 		// if same key exists update value
@@ -142,11 +141,11 @@ func (n *AVLNode[TKey, TValue]) add(key TKey, value TValue, pool *mempool.Pool[*
 	return n.rebalanceTree()
 }
 
-func (n *AVLNode[TKey, TValue]) addOrUpdate(
+func (n *UnrestrictedAVLNode[TKey, TValue]) addOrUpdate(
 	key TKey, value TValue,
 	upd func(oldValue TValue) (TValue, error),
-	pool *mempool.Pool[*AVLNode[TKey, TValue]],
-) (*AVLNode[TKey, TValue], error) {
+	pool *mempool.Pool[*UnrestrictedAVLNode[TKey, TValue]],
+) (*UnrestrictedAVLNode[TKey, TValue], error) {
 	var err error
 
 	if n == nil {
@@ -160,16 +159,16 @@ func (n *AVLNode[TKey, TValue]) addOrUpdate(
 			return node, nil
 		}
 
-		return &AVLNode[TKey, TValue]{key, value, 1, nil, nil}, nil
+		return &UnrestrictedAVLNode[TKey, TValue]{key, value, 1, nil, nil}, nil
 	}
 
-	if key < n.key {
+	if key.Less(n.key) {
 		n.left, err = n.left.addOrUpdate(key, value, upd, pool)
 
 		if err != nil {
 			return nil, err
 		}
-	} else if key > n.key {
+	} else if key.Greater(n.key) {
 		n.right, err = n.right.addOrUpdate(key, value, upd, pool)
 
 		if err != nil {
@@ -190,13 +189,13 @@ func (n *AVLNode[TKey, TValue]) addOrUpdate(
 }
 
 // Removes a node
-func (n *AVLNode[TKey, TValue]) remove(key TKey, pool *mempool.Pool[*AVLNode[TKey, TValue]]) *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) remove(key TKey, pool *mempool.Pool[*UnrestrictedAVLNode[TKey, TValue]]) *UnrestrictedAVLNode[TKey, TValue] {
 	if n == nil {
 		return nil
 	}
-	if key < n.key {
+	if key.Less(n.key) {
 		n.left = n.left.remove(key, pool)
-	} else if key > n.key {
+	} else if key.Greater(n.key) {
 		n.right = n.right.remove(key, pool)
 	} else {
 		if n.left != nil && n.right != nil {
@@ -240,13 +239,13 @@ func (n *AVLNode[TKey, TValue]) remove(key TKey, pool *mempool.Pool[*AVLNode[TKe
 }
 
 // Searches for a node
-func (n *AVLNode[TKey, TValue]) search(key TKey) *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) search(key TKey) *UnrestrictedAVLNode[TKey, TValue] {
 	if n == nil {
 		return nil
 	}
-	if key < n.key {
+	if key.Less(n.key) {
 		return n.left.search(key)
-	} else if key > n.key {
+	} else if key.Greater(n.key) {
 		return n.right.search(key)
 	} else {
 		return n
@@ -254,7 +253,7 @@ func (n *AVLNode[TKey, TValue]) search(key TKey) *AVLNode[TKey, TValue] {
 }
 
 // Displays nodes left-depth first (used for debugging)
-func (n *AVLNode[TKey, TValue]) displayNodesInOrder() {
+func (n *UnrestrictedAVLNode[TKey, TValue]) displayNodesInOrder() {
 	if n.left != nil {
 		n.left.displayNodesInOrder()
 	}
@@ -264,19 +263,19 @@ func (n *AVLNode[TKey, TValue]) displayNodesInOrder() {
 	}
 }
 
-func (n *AVLNode[TKey, TValue]) getHeight() int {
+func (n *UnrestrictedAVLNode[TKey, TValue]) getHeight() int {
 	if n == nil {
 		return 0
 	}
 	return n.height
 }
 
-func (n *AVLNode[TKey, TValue]) recalculateHeight() {
+func (n *UnrestrictedAVLNode[TKey, TValue]) recalculateHeight() {
 	n.height = 1 + maxElem(n.left.getHeight(), n.right.getHeight())
 }
 
 // Checks if node is balanced and rebalance
-func (n *AVLNode[TKey, TValue]) rebalanceTree() *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) rebalanceTree() *UnrestrictedAVLNode[TKey, TValue] {
 	if n == nil {
 		return n
 	}
@@ -301,7 +300,7 @@ func (n *AVLNode[TKey, TValue]) rebalanceTree() *AVLNode[TKey, TValue] {
 }
 
 // Rotate nodes left to balance node
-func (n *AVLNode[TKey, TValue]) rotateLeft() *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) rotateLeft() *UnrestrictedAVLNode[TKey, TValue] {
 	newRoot := n.right
 	n.right = newRoot.left
 	newRoot.left = n
@@ -312,7 +311,7 @@ func (n *AVLNode[TKey, TValue]) rotateLeft() *AVLNode[TKey, TValue] {
 }
 
 // Rotate nodes right to balance node
-func (n *AVLNode[TKey, TValue]) rotateRight() *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) rotateRight() *UnrestrictedAVLNode[TKey, TValue] {
 	newRoot := n.left
 	n.left = newRoot.right
 	newRoot.right = n
@@ -323,7 +322,7 @@ func (n *AVLNode[TKey, TValue]) rotateRight() *AVLNode[TKey, TValue] {
 }
 
 // Finds the smallest child (based on the key) for the current node
-func (n *AVLNode[TKey, TValue]) findSmallest() *AVLNode[TKey, TValue] {
+func (n *UnrestrictedAVLNode[TKey, TValue]) findSmallest() *UnrestrictedAVLNode[TKey, TValue] {
 	if n.left != nil {
 		return n.left.findSmallest()
 	} else {
@@ -331,24 +330,16 @@ func (n *AVLNode[TKey, TValue]) findSmallest() *AVLNode[TKey, TValue] {
 	}
 }
 
-// Returns maxElem number - TODO: std lib seemed to only have a method for floats!
-func maxElem[TKey constraints.Ordered](a TKey, b TKey) TKey {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // NewAVLTree creates a new
 // AVL tree with the specified options.
-func NewAVLTree[
-	TKey constraints.Ordered, TValue any,
+func NewUnrestrictedAVLTree[
+	TKey Comparable, TValue any,
 ](
-	options ...AVLTreeOption[TKey, TValue],
+	options ...UnrestrictedAVLTreeOption[TKey, TValue],
 ) (
-	*AVLTree[TKey, TValue], error,
+	*UnrestrictedAVLTree[TKey, TValue], error,
 ) {
-	tree := &AVLTree[TKey, TValue]{}
+	tree := &UnrestrictedAVLTree[TKey, TValue]{}
 
 	for i := 0; i < len(options); i++ {
 		option := options[i]

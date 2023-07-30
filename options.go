@@ -19,3 +19,18 @@ func AVLTreeOptionWithMemoryPool[
 		return nil
 	}
 }
+
+type UnrestrictedAVLTreeOption[
+	TKey Comparable, TValue any,
+] func(tree *UnrestrictedAVLTree[TKey, TValue]) error
+
+func UnrestrictedAVLTreeOptionWithMemoryPool[
+	TKey Comparable, TValue any,
+](
+	pool *mempool.Pool[*UnrestrictedAVLNode[TKey, TValue]],
+) UnrestrictedAVLTreeOption[TKey, TValue] {
+	return func(tree *UnrestrictedAVLTree[TKey, TValue]) error {
+		tree.pool = pool
+		return nil
+	}
+}
