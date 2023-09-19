@@ -29,10 +29,12 @@ func TestVisitInOrder(t *testing.T) {
 
 	str := ""
 
-	tree.VisitInOrder(func(node *avltree.AVLNode[int, int]) {
+	err = tree.VisitInOrder(func(node *avltree.AVLNode[int, int]) error {
 		str += strconv.Itoa(node.Value)
+		return nil
 	})
 
+	assert.Nil(t, err)
 	assert.Equal(t, "12345678", str)
 }
 

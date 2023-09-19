@@ -86,11 +86,14 @@ func TestFill(t *testing.T) {
 
 	str := ""
 
-	tree.VisitInOrder(func(node *avltree.UnrestrictedAVLNode[Range, struct{}]) {
+	err = tree.VisitInOrder(func(node *avltree.UnrestrictedAVLNode[Range, struct{}]) error {
 		str += strconv.Itoa(int(node.Key().A))
 		str += strconv.Itoa(int(node.Key().B))
+
+		return nil
 	})
 
+	assert.Nil(t, err)
 	assert.Equal(t, "0123456789", str)
 }
 
